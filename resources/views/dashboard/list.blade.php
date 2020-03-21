@@ -3,7 +3,8 @@
 @section("page-title", $name)
 
 @section("content")
-    @if(empty($data))
+    <a href="{{ route('buses.create') }}"><button>Create</button></a>
+    @if(empty($data) || empty($data['body']))
         <h2>
             No {{ $name }} Defined
         </h2>

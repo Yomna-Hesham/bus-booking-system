@@ -4,6 +4,7 @@
     <body>
         @yield("content")
 
+        @include("layouts.modal")
         @include("assets.scripts")
     </body>
 </html>
