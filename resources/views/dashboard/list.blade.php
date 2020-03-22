@@ -12,9 +12,11 @@
 
 @section("content")
     <div class="row justify-content-end align-items-end">
-        <div class="col align-self-end order-12">
-            <a href="{{ route(strtolower($name).'.create') }}"><button class="btn btn-success btn-lg create">Create</button></a>
-        </div>
+        @if(!(isset($enableEdit) && $enableEdit == false))
+            <div class="col align-self-end order-12">
+                <a href="{{ route(strtolower($name).'.create') }}"><button class="btn btn-success btn-lg create">Create</button></a>
+            </div>
+        @endif
     </div>
     @if(empty($data) || empty($data['body']))
         <h2>

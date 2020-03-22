@@ -15,6 +15,8 @@
             @foreach($data['headers'] as $key => $value)
                 <td>{{ $row[$key] }}</td>
             @endforeach
+
+            @if(!(isset($enableEdit) && $enableEdit == false))
             <td>
                 <a href="{{ route(strtolower($name).".edit", $row['id']) }}">
                     <button type="button" class="btn btn-info btn-sm">EDIT</button>
@@ -26,6 +28,7 @@
                         onclick="initiateDelete('{{ route(strtolower($name).'.destroy', $row['id']) }}')"
                 >DELETE</button>
             </td>
+            @endif
         </tr>
     @endforeach
 </table>
