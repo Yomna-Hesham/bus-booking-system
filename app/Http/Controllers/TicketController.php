@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Station;
 use App\Ticket;
+use App\Trip;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
@@ -15,6 +20,8 @@ class TicketController extends Controller
         $headers = [
             'id' => 'ID',
             'user' => 'User',
+            'phone' => 'Phone',
+            'trip_id' => 'Trip ID',
             'trip' => 'Trip',
             'departureStation' => "Departure",
             'arrivalStation' => "Arrival",
@@ -26,13 +33,15 @@ class TicketController extends Controller
         $body = [];
         foreach ($tickets as $ticket){
             $user = $ticket->user->name;
+            $phone = $ticket->user->phone;
             $trip = $ticket->trip->getStationsStringified();
             $bus = $ticket->trip->bus_id;
-            $departureStation = explode(" , ", $trip)[0];
-            $arrivalStation = array_reverse(explode(" , ", $trip))[0];
+            $departureStation = $ticket->departureStation->name;
+            $arrivalStation = $ticket->arrivalStation->name;
 
             $ticket = $ticket->toArray();
             $ticket['user'] = $user;
+            $ticket['phone'] = $phone;
             $ticket['trip'] = $trip;
             $ticket['bus'] = $bus;
             $ticket['departureStation'] = $departureStation;
@@ -54,5 +63,75 @@ class TicketController extends Controller
                 ]
             );
 
+    }
+
+    public function store(Request $request){
+        DB::beginTransaction();
+
+        $user = new User($request->all());
+        $user->save();
+
+        $from = Station::where('name', $request->from)->first();
+        if(empty($from)){
+            return new Response("No such station ".$request->from,Response::HTTP_NOT_FOUND);
+        }
+
+        $to = Station::where('name', $request->to)->first();
+        if(empty($to)){
+            return new Response("No such station ".$request->to,Response::HTTP_NOT_FOUND);
+        }
+
+        $trip = Trip::with('tickets')->find($request->trip_id);
+        if(empty($trip)){
+            return new Response("No such trip ".$request->trip_id,Response::HTTP_NOT_FOUND);
+        }
+
+        $reservedSeats = [];
+        foreach ($trip->tickets as $ticket){
+            if($ticket->departureStation->getStationOrderInTrip($trip) <= $from->getStationOrderInTrip($trip)){
+                if($ticket->arrivalStation->getStationOrderInTrip($trip) >= $from->getStationOrderInTrip($trip)){
+                    $reservedSeats[] = $ticket->seat;
+                }
+            }
+        }
+        sort($reservedSeats);
+        $seat = 0;
+        for($i = 0; $i < sizeof($reservedSeats); $i++){
+            if($i > 0 && $reservedSeats[$i] - $reservedSeats[$i - 1] > 1){
+                $seat = $reservedSeats[$i - 1] + 1;
+                break;
+            }
+        }
+        if($seat == 0){
+            $seat = sizeof($reservedSeats) > 0 ? $reservedSeats[sizeof($reservedSeats) - 1] + 1 : 1;
+        }
+
+        if($seat > 12){
+            return new Response("No available seats ".$request->to,Response::HTTP_NOT_FOUND);
+        }
+
+        $ticket = new Ticket();
+        $ticket->seat = $seat;
+        $ticket->price = 50;
+        $ticket->user()->associate($user);
+        $ticket->trip()->associate($trip);
+        $ticket->departureStation()->associate($from);
+        $ticket->arrivalStation()->associate($to);
+        $ticket->save();
+
+        DB::commit();
+
+        return [
+            "Ticket ID" => $ticket->id,
+            "User"  => $user->name,
+            "Phone"  => $user->phone,
+            "Trip ID" => $trip->id,
+            "Trip Stations" => $trip->getStationsStringified(),
+            "Departure Station" => $ticket->departureStation->name,
+            "Arrival Station" => $ticket->arrivalStation->name,
+            "Bus ID" => $trip->bus_id,
+            "Seat" => $seat,
+            "Price" => $ticket->price
+        ];
     }
 }

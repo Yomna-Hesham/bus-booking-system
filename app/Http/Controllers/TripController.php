@@ -158,7 +158,7 @@ class TripController extends Controller
     }
 
     private function getMatchingTrips($from, $to){
-        $trips = Trip::with(['stations', 'tickets'])->get();
+        $trips = Trip::with(['stations', 'tickets'])->where('time', '>=', Carbon::now()->startOfDay())->get();
 
         $matchingTrips = [];
 
