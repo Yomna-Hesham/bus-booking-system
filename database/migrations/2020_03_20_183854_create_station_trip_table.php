@@ -13,7 +13,7 @@ class CreateTripStationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('trip_station', function (Blueprint $table) {
+        Schema::create('station_trip', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId("station_id")->constrained();

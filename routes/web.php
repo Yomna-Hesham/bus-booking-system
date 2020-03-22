@@ -18,3 +18,5 @@ Route::get('/', function () {
 });
 
 Route::resource("buses", "BusController");
+Route::resource("trips", "TripController");
+Route::resource("tickets", "TripController");

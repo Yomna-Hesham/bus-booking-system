@@ -11,14 +11,17 @@ class BusController extends Controller
 {
     //
 
+    private $name = "Buses";
+
     public function index(){
         $buses = Bus::with(['trips'])->get();
         $headers = ['id' => 'ID', 'license_num' => 'License Number','trips' => 'Trip'];
 
         $body = [];
         foreach ($buses as $bus){
+            $trip = $bus->trips()->where('time', ">=", Carbon::now()->startOfDay())->first();
             $bus = $bus->toArray();
-            $bus['trips'] = "-";
+            $bus['trips'] = isset($trip) ? $trip->getStationsStringified() : "-";
 
             $body[] = $bus;
         }
@@ -37,12 +40,14 @@ class BusController extends Controller
     }
 
     public function create(){
-        $fields = ['license_num' => 'License Number'];
+        $fields = [
+            'license_num' => ['label' => 'License Number', 'type' => 'text']
+        ];
 
         return view('dashboard.edit')
             ->with(
                 [
-                    'name' => 'Buses',
+                    'name' => $this->name,
                     'fields' => $fields
                 ]
             );
@@ -58,12 +63,14 @@ class BusController extends Controller
     public function edit($id){
         $bus = Bus::find($id);
 
-        $fields = ['license_num' => 'License Number'];
+        $fields = [
+            'license_num' => ['label' => 'License Number', 'type' => 'text']
+        ];
 
         return view('dashboard.edit')
             ->with(
                 [
-                    'name' => 'Buses',
+                    'name' => $this->name,
                     'fields' => $fields,
                     'data' => $bus->toArray()
                 ]

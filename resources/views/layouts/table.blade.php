@@ -3,7 +3,7 @@
 @section('modal-action-confirm', "confirmDelete()")
 @section('modal-action-cancel', "cancelDelete()")
 
-<table>
+<table class="table">
     <tr>
         @foreach($data['headers'] as $header)
             <th>{{ $header }}</th>
@@ -17,10 +17,10 @@
             @endforeach
             <td>
                 <a href="{{ route(strtolower($name).".edit", $row['id']) }}">
-                    <button type="button" class="btn btn-info">EDIT</button>
+                    <button type="button" class="btn btn-info btn-sm">EDIT</button>
                 </a>
 
-                <button type="button" class="btn btn-danger"
+                <button type="button" class="btn btn-danger btn-sm"
                         data-toggle="modal"
                         data-target="#confirm-action"
                         onclick="initiateDelete('{{ route(strtolower($name).'.destroy', $row['id']) }}')"
