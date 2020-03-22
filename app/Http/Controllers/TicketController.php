@@ -6,16 +6,30 @@ use App\Station;
 use App\Ticket;
 use App\Trip;
 use App\User;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Validator;
 
 class TicketController extends Controller
 {
     //
     private $name = "Tickets";
+    private $validationRules = [
+        'name' => 'required',
+        'phone' => 'required',
+        'from' => 'required',
+        'to' => 'required',
+        'trip_id' => 'required|numeric'
+    ];
 
-    public function index(){
+    public function index(Request $request){
+        $errors = $request->session()->get("errors");
+        if(!empty($errors)){
+            return new Response($errors->all(), Response::HTTP_NOT_FOUND);
+        }
+
         $tickets = Ticket::all();
         $headers = [
             'id' => 'ID',
@@ -66,6 +80,8 @@ class TicketController extends Controller
     }
 
     public function store(Request $request){
+        $request->validate($this->validationRules);
+
         DB::beginTransaction();
 
         $user = new User($request->all());

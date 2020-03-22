@@ -13,6 +13,11 @@ class TripController extends Controller
 {
     //
     private $name = "Trips";
+    private $validationRules = [
+        'bus_id' => 'required|numeric',
+        'time' => 'required|date',
+        'stations' => 'required'
+    ];
 
     public function index(){
         $trips = Trip::with(['stations'])->get();
@@ -58,6 +63,8 @@ class TripController extends Controller
     }
 
     public function store(Request $request){
+        $request->validate($this->validationRules);
+
         $trip = new Trip($request->all());
         $trip->save();
 
@@ -93,6 +100,8 @@ class TripController extends Controller
     }
 
     public function update(Request $request, $id){
+        $request->validate($this->validationRules);
+
         $trip = Trip::find($id);
         $trip->fill($request->all());
         $trip->save();
@@ -113,20 +122,20 @@ class TripController extends Controller
         $trip->stations()->detach();
         $trip->delete();
 
-        return new Response(Response::HTTP_OK);
+        return new Response("Deleted",Response::HTTP_OK);
     }
 
     public function getTripForStations($from, $to){
         $matchingTrips = $this->getMatchingTrips($from, $to);
 
         if(empty($matchingTrips)){
-            return new Response(Response::HTTP_NOT_FOUND);
+            return new Response("No trips available for these stations", Response::HTTP_NOT_FOUND);
         }
 
         $availableTrips = $this->getAvailableTrips($from, $matchingTrips);
 
         if(empty($availableTrips)){
-            return new Response(Response::HTTP_NOT_FOUND);
+            return new Response("No trips available for these stations",Response::HTTP_NOT_FOUND);
         }
 
         return $availableTrips;

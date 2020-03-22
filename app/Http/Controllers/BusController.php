@@ -12,6 +12,9 @@ class BusController extends Controller
     //
 
     private $name = "Buses";
+    private $validationRules = [
+        'license_num' => 'required'
+    ];
 
     public function index(){
         $buses = Bus::with(['trips'])->get();
@@ -54,6 +57,8 @@ class BusController extends Controller
     }
 
     public function store(Request $request){
+        $request->validate($this->validationRules);
+
         $bus = new Bus($request->all());
         $bus->save();
 
@@ -78,6 +83,8 @@ class BusController extends Controller
     }
 
     public function update(Request $request, $id){
+        $request->validate($this->validationRules);
+
         $bus = Bus::find($id);
 
         $bus->fill($request->all());
@@ -90,6 +97,6 @@ class BusController extends Controller
     public function destroy($id){
         Bus::destroy($id);
 
-        return new Response(Response::HTTP_OK);
+        return new Response("Deleted", Response::HTTP_OK);
     }
 }
