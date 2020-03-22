@@ -19,4 +19,8 @@ class Station extends Model
     public function trips(){
         return $this->belongsToMany(Trip::class)->withPivot("order");
     }
+
+    public function getStationOrderInTrip(Trip $trip){
+        return $trip->stations($this->id)->first()->pivot->order;
+    }
 }

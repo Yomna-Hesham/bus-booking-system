@@ -116,6 +116,22 @@ class TripController extends Controller
         return new Response(Response::HTTP_OK);
     }
 
+    public function getTripForStations($from, $to){
+        $matchingTrips = $this->getMatchingTrips($from, $to);
+
+        if(empty($matchingTrips)){
+            return new Response(Response::HTTP_NOT_FOUND);
+        }
+
+        $availableTrips = $this->getAvailableTrips($from, $matchingTrips);
+
+        if(empty($availableTrips)){
+            return new Response(Response::HTTP_NOT_FOUND);
+        }
+
+        return $availableTrips;
+    }
+
     private function getStationsForView(){
         $stations = Station::all();
         $stationsOptions = [];
@@ -139,5 +155,58 @@ class TripController extends Controller
 
     private function isBusAssignedToTrip(Bus $bus){
         return !$bus->trips()->where('time', '>=', Carbon::now()->startOfDay())->get()->isEmpty();
+    }
+
+    private function getMatchingTrips($from, $to){
+        $trips = Trip::with(['stations', 'tickets'])->get();
+
+        $matchingTrips = [];
+
+        foreach ($trips as $trip){
+            $stations = $trip->stations()->orderBy('order', 'asc')->get();
+            $isFromFound = false;
+            foreach ($stations as $station){
+                if(!$isFromFound){
+                    if($station->name == $from) {
+                        $isFromFound = true;
+                    }
+                }else{
+                    if($station->name == $to){
+                        $matchingTrips[] = $trip;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $matchingTrips;
+    }
+
+    private function getAvailableTrips($from, $trips){
+        $from = Station::where('name', $from)->first();
+        $availableTrips = [];
+        foreach ($trips as $trip){
+            $tickets = $trip->tickets;
+            $reservedSeatsCount = 0;
+            foreach($tickets as $ticket){
+                if($ticket->departureStation->getStationOrderInTrip($trip) <= $from->getStationOrderInTrip($trip)){
+                    if($ticket->arrivalStation->getStationOrderInTrip($trip) >= $from->getStationOrderInTrip($trip)){
+                        $reservedSeatsCount++;
+
+                    }
+                }
+            }
+
+            if($reservedSeatsCount < 12){
+                $availableTrips[] = [
+                    "id" => $trip->id,
+                    "stations" => $trip->getStationsStringified(),
+                    "time" => $trip->time
+                ];
+            }
+        }
+
+        return $availableTrips;
     }
 }

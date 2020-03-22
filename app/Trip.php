@@ -11,7 +11,7 @@ class Trip extends Model
 
     public function getStationsStringified(){
         $stations = $this->stations()->orderBy('order', 'asc')->pluck('name')->toArray();
-        return implode(" , ", $stations);
+        return implode(",", $stations);
     }
 
     public function bus(){
