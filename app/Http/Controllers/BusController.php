@@ -6,6 +6,7 @@ use App\Bus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class BusController extends Controller
 {
@@ -95,7 +96,21 @@ class BusController extends Controller
     }
 
     public function destroy($id){
-        Bus::destroy($id);
+        DB::beginTransaction();
+        $bus = Bus::find($id);
+
+        foreach ($bus->trips as $trip){
+            if($trip->time < Carbon::now()->startOfDay()){
+                $trip->bus()->dissociate();
+                $trip->save();
+            }else{
+                return new Response("There an upcoming trip ".$trip->getStationsStringified()." associated with this bus, please change its bus before deletion", Response::HTTP_CONFLICT);
+            }
+        }
+
+        $bus->delete();
+
+        DB::commit();
 
         return new Response("Deleted", Response::HTTP_OK);
     }

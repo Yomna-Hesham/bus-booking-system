@@ -6,11 +6,10 @@ use App\Station;
 use App\Ticket;
 use App\Trip;
 use App\User;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Validator;
 
 class TicketController extends Controller
 {
@@ -48,8 +47,8 @@ class TicketController extends Controller
         foreach ($tickets as $ticket){
             $user = $ticket->user->name;
             $phone = $ticket->user->phone;
-            $trip = $ticket->trip->getStationsStringified();
-            $bus = $ticket->trip->bus_id;
+            $trip = empty($ticket->trip) ? "DELETED TRIP" : $ticket->trip->getStationsStringified();
+            $bus = empty($ticket->trip) ? "-" : $ticket->trip->bus_id;
             $departureStation = $ticket->departureStation->name;
             $arrivalStation = $ticket->arrivalStation->name;
 
@@ -80,7 +79,10 @@ class TicketController extends Controller
     }
 
     public function store(Request $request){
-        $request->validate($this->validationRules);
+        $validator = Validator::make($request->all(), $this->validationRules);
+        if($validator->fails()){
+            return new Response($validator->messages(), Response::HTTP_BAD_REQUEST);
+        }
 
         DB::beginTransaction();
 

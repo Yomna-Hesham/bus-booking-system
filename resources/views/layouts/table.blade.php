@@ -47,7 +47,12 @@
                 type: "DELETE",
                 url: deleteUrl,
                 success: function(msg){
+                    console.log(msg);
                     location.href = "{{ route(strtolower($name).".index") }}"
+                },
+                error: function (res) {
+                    console.log(res);
+                    alert(res.responseText);
                 }
             });
         }

@@ -16,8 +16,8 @@ class CreateTripsTable extends Migration
         Schema::create('trips', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId("bus_id")->constrained();
-            $table->timestamp("time");
+            $table->foreignId("bus_id")->nullable()->constrained();
+            $table->datetime("time");
 
             $table->timestamps();
         });

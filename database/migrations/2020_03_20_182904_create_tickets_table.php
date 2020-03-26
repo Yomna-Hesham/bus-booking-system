@@ -17,7 +17,7 @@ class CreateTicketsTable extends Migration
             $table->id();
 
             $table->foreignId("user_id")->constrained();
-            $table->foreignId("trip_id")->constrained();
+            $table->foreignId("trip_id")->nullable()->constrained();
             $table->foreignId("departure_station_id")->references("id")->on("stations");
             $table->foreignId("arrival_station_id")->references("id")->on("stations");
             $table->unsignedInteger("seat");

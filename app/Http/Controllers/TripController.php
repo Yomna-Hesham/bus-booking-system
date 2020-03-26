@@ -18,6 +18,7 @@ class TripController extends Controller
         'time' => 'required|date',
         'stations' => 'required'
     ];
+    private $trip;
 
     public function index(){
         $trips = Trip::with(['stations'])->get();
@@ -78,7 +79,7 @@ class TripController extends Controller
     }
 
     public function edit($id){
-        $trip = Trip::find($id);
+        $this->trip = Trip::find($id);
 
         $stationsOptions = $this->getStationsForView();
         $busesOptions = $this->getBusesForView();
@@ -94,7 +95,7 @@ class TripController extends Controller
                 [
                     'name' => $this->name,
                     'fields' => $fields,
-                    'data' => $trip
+                    'data' => $this->trip
                 ]
             );
     }
@@ -120,6 +121,11 @@ class TripController extends Controller
     public function destroy($id){
         $trip = Trip::find($id);
         $trip->stations()->detach();
+        foreach ($trip->tickets as $ticket){
+            $ticket->trip()->dissociate();
+            $ticket->save();
+        }
+
         $trip->delete();
 
         return new Response("Deleted",Response::HTTP_OK);
@@ -155,7 +161,7 @@ class TripController extends Controller
         $buses = Bus::all();
         $busesOptions = [];
         foreach ($buses as $bus){
-            if(!$this->isBusAssignedToTrip($bus))
+            if(!$this->isBusAssignedToTrip($bus) || (isset($this->trip) && $this->trip->bus_id == $bus->id))
                 $busesOptions[$bus->id] = $bus->id." - ".$bus->license_num;
         }
 
