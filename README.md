@@ -15,7 +15,7 @@ The dashboard is served on the route `/`
 ####Note: 
 In trip creation page, a third party library is used for selecting stations (multi select); called [JQuery Multi Select](http://loudev.com/)
 
-The library has feature called *Keep Order* to preserve the order of the selected options (so the trip stations are selected in order). This feature is *BUGGY*; it only show the selected options in order of selection, but doesn't preserve this order on sending the request. *There was no time to fix it*
+The library has feature called *Keep Order* to preserve the order of the selected options (so the trip stations are selected in order). This feature is *BUGGY*; it only show the selected options in order of selection, but doesn't preserve this order on sending the request. *There was no time to search for alternative*
 
 
 ## APIs 
